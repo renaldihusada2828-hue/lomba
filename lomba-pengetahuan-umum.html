@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lomba Pengetahuan Umum</title>
+<style>
+:root{
+  --bg:#f4f4f0;
+  --card:#fff;
+  --text:#171717;
+  --muted:#777;
+  --line:#deded8;
+  --accent:#171717;
+  --success:#166534;
+  --danger:#991b1b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+}
+button{font:inherit}
+.app{
+  width:min(760px,92vw);
+  min-height:100vh;
+  margin:auto;
+  padding:28px 0 50px;
+  display:flex;
+  align-items:center;
+}
+.screen{display:none;width:100%}
+.screen.active{display:block}
+.eyebrow{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.hero h1{
+  font-size:clamp(46px,10vw,92px);
+  line-height:.9;
+  letter-spacing:-.065em;
+  margin:16px 0 24px;
+}
+.hero p{
+  max-width:560px;
+  color:#666;
+  line-height:1.65;
+  font-size:16px;
+}
+.primary,.secondary{
+  border-radius:12px;
+  padding:15px 20px;
+  cursor:pointer;
+  transition:.15s ease;
+}
+.primary{
+  border:1px solid var(--accent);
+  background:var(--accent);
+  color:#fff;
+}
+.secondary{
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--text);
+}
+.primary:hover,.secondary:hover{transform:translateY(-2px)}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:12px;
+}
+.timer{
+  min-width:74px;
+  text-align:center;
+  border:1px solid var(--line);
+  background:#fff;
+  padding:9px 12px;
+  border-radius:10px;
+  font-weight:700;
+}
+.timer.warning{color:var(--danger);border-color:#e7b5b5}
+.progress{
+  height:5px;
+  background:#ddd;
+  border-radius:99px;
+  overflow:hidden;
+  margin-bottom:46px;
+}
+.progress div{
+  height:100%;
+  width:0;
+  background:var(--accent);
+  transition:width .25s ease;
+}
+.question-box{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:28px;
+}
+.question{
+  font-size:clamp(27px,5vw,43px);
+  line-height:1.08;
+  letter-spacing:-.04em;
+  margin:10px 0 28px;
+}
+.options{
+  display:grid;
+  gap:10px;
+}
+.option{
+  width:100%;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--text);
+  padding:17px;
+  border-radius:12px;
+  text-align:left;
+  cursor:pointer;
+  transition:.15s ease;
+}
+.option:hover{border-color:#999;transform:translateY(-1px)}
+.option.correct{background:#ecfdf3;border-color:#86efac;color:var(--success)}
+.option.wrong{background:#fef2f2;border-color:#fca5a5;color:var(--danger)}
+.option.disabled{cursor:default}
+.feedback{
+  display:none;
+  margin-top:18px;
+  padding:16px;
+  border-radius:12px;
+  background:#f7f7f3;
+  border:1px solid var(--line);
+}
+.feedback.show{display:block}
+.feedback strong{display:block;margin-bottom:5px}
+.feedback p{margin:0;color:#666;line-height:1.5}
+.quiz-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:18px;
+}
+.live-stats{
+  display:flex;
+  gap:16px;
+  color:#666;
+  font-size:13px;
+}
+.result-card{
+  background:#171717;
+  color:#fff;
+  border-radius:24px;
+  padding:32px;
+}
+.result-score{
+  font-size:clamp(72px,15vw,130px);
+  line-height:.85;
+  letter-spacing:-.08em;
+  font-weight:800;
+  margin:20px 0 28px;
+}
+.result-title{
+  font-size:clamp(28px,6vw,50px);
+  line-height:1;
+  letter-spacing:-.05em;
+  margin:0 0 12px;
+}
+.result-description{color:#bbb;line-height:1.6}
+.result-stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:30px;
+}
+.stat{
+  border-top:1px solid #444;
+  padding-top:12px;
+}
+.stat small{
+  display:block;
+  color:#999;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-size:10px;
+}
+.stat strong{
+  display:block;
+  margin-top:6px;
+  font-size:23px;
+}
+.result-actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+.share-note{
+  color:#777;
+  font-size:12px;
+  margin-top:12px;
+}
+@media(max-width:560px){
+  .app{width:min(94vw,760px);padding:20px 0 35px}
+  .question-box{padding:20px}
+  .progress{margin-bottom:30px}
+  .result-card{padding:24px}
+  .result-stats{grid-template-columns:1fr 1fr}
+  .live-stats{gap:9px}
+}
+</style>
+</head>
+
+<body>
+<main class="app">
+
+<section id="startScreen" class="screen active">
+  <div class="hero">
+    <div class="eyebrow">10 soal · pengetahuan umum</div>
+    <h1>LOMBA<br>PENGETAHUAN<br>UMUM</h1>
+    <p>
+      Seberapa luas pengetahuan lo? Jawab 10 soal, kejar streak,
+      dan lihat apakah otak lo memang sehebat yang selama ini lo kira.
+    </p>
+    <button id="startBtn" class="primary">Mulai Lomba</button>
+  </div>
+</section>
+
+<section id="quizScreen" class="screen">
+  <div class="topbar">
+    <div>
+      <div class="eyebrow" id="questionCounter">SOAL 01 / 10</div>
+    </div>
+    <div class="timer" id="timer">10.0</div>
+  </div>
+
+  <div class="progress"><div id="progressBar"></div></div>
+
+  <div class="question-box">
+    <div class="eyebrow">Pengetahuan umum</div>
+    <div class="question" id="questionText"></div>
+    <div class="options" id="options"></div>
+
+    <div class="feedback" id="feedback">
+      <strong id="feedbackTitle"></strong>
+      <p id="feedbackText"></p>
+    </div>
+
+    <div class="quiz-footer">
+      <div class="live-stats">
+        <span>Skor: <b id="score">0</b></span>
+        <span>Streak: <b id="streak">0</b></span>
+      </div>
+      <button id="nextBtn" class="primary" style="display:none">Soal Berikutnya</button>
+    </div>
+  </div>
+</section>
+
+<section id="resultScreen" class="screen">
+  <div class="eyebrow">Hasil akhir</div>
+
+  <div class="result-card">
+    <div class="eyebrow" style="color:#999">LOMBA PENGETAHUAN UMUM</div>
+    <div class="result-score" id="finalScore">0/100</div>
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-description" id="resultDescription"></div>
+
+    <div class="result-stats">
+      <div class="stat">
+        <small>Jawaban benar</small>
+        <strong id="correctStat">0/10</strong>
+      </div>
+      <div class="stat">
+        <small>Akurasi</small>
+        <strong id="accuracyStat">0%</strong>
+      </div>
+      <div class="stat">
+        <small>Streak terbaik</small>
+        <strong id="bestStreakStat">0</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-actions">
+    <button id="retryBtn" class="primary">Main Lagi</button>
+    <button id="shareBtn" class="secondary">Bagikan Hasil</button>
+  </div>
+  <div class="share-note">Bagikan hasil lo ke teman dan lihat siapa yang paling pintar.</div>
+</section>
+
+</main>
+
+<script>
+const questions = [
+  {
+    question:"Planet terbesar di tata surya adalah...",
+    options:["Saturnus","Jupiter","Neptunus","Uranus"],
+    answer:1
+  },
+  {
+    question:"Ibu kota Australia adalah...",
+    options:["Sydney","Melbourne","Canberra","Perth"],
+    answer:2
+  },
+  {
+    question:"Benua terbesar di dunia berdasarkan luas wilayah adalah...",
+    options:["Afrika","Eropa","Asia","Amerika Utara"],
+    answer:2
+  },
+  {
+    question:"Satuan SI untuk kuat arus listrik adalah...",
+    options:["Volt","Ohm","Watt","Ampere"],
+    answer:3
+  },
+  {
+    question:"Hewan darat tercepat di dunia adalah...",
+    options:["Singa","Cheetah","Kuda","Serigala"],
+    answer:1
+  },
+  {
+    question:"Siapa penulis novel Laskar Pelangi?",
+    options:["Andrea Hirata","Tere Liye","Pramoedya Ananta Toer","Dee Lestari"],
+    answer:0
+  },
+  {
+    question:"Gunung tertinggi di dunia jika diukur dari permukaan laut adalah...",
+    options:["K2","Kilimanjaro","Everest","Elbrus"],
+    answer:2
+  },
+  {
+    question:"Proses tumbuhan membuat makanan menggunakan cahaya matahari disebut...",
+    options:["Respirasi","Fotosintesis","Fermentasi","Transpirasi"],
+    answer:1
+  },
+  {
+    question:"Laut terluas di dunia adalah...",
+    options:["Laut Jawa","Laut Mediterania","Laut Karibia","Laut Filipina"],
+    answer:3
+  },
+  {
+    question:"Bahasa resmi negara Indonesia adalah...",
+    options:["Bahasa Jawa","Bahasa Indonesia","Bahasa Melayu","Bahasa Sunda"],
+    answer:1
+  }
+];
+
+const praises = [
+  "Mantap. Otak masih bekerja sesuai spesifikasi.",
+  "Benar. Ternyata lo nggak cuma jago buka media sosial.",
+  "Nice. Satu lagi buat dibanggakan hari ini.",
+  "Tepat. Kepercayaan diri lo ternyata ada dasarnya."
+];
+
+const sarcastic = [
+  "Salah. Jawaban lo penuh keyakinan, sayangnya salah.",
+  "Belum tepat. Google mungkin sedang kecewa.",
+  "Salah. Tapi setidaknya lo jawab dengan percaya diri.",
+  "Jawaban lo menarik. Kebenaran memilih jawaban lain.",
+  "Salah. Kita anggap ini pemanasan."
+];
+
+let current = 0;
+let score = 0;
+let streak = 0;
+let bestStreak = 0;
+let correct = 0;
+let timerValue = 10;
+let timerInterval = null;
+let answered = false;
+
+const startScreen = document.getElementById("startScreen");
+const quizScreen = document.getElementById("quizScreen");
+const resultScreen = document.getElementById("resultScreen");
+const timerEl = document.getElementById("timer");
+const optionsEl = document.getElementById("options");
+const feedbackEl = document.getElementById("feedback");
+const feedbackTitle = document.getElementById("feedbackTitle");
+const feedbackText = document.getElementById("feedbackText");
+const nextBtn = document.getElementById("nextBtn");
+
+function showScreen(screen){
+  [startScreen,quizScreen,resultScreen].forEach(s=>s.classList.remove("active"));
+  screen.classList.add("active");
+}
+
+function startGame(){
+  current = 0;
+  score = 0;
+  streak = 0;
+  bestStreak = 0;
+  correct = 0;
+  showScreen(quizScreen);
+  renderQuestion();
+}
+
+function renderQuestion(){
+  clearInterval(timerInterval);
+  answered = false;
+  timerValue = 10;
+
+  const q = questions[current];
+
+  document.getElementById("questionCounter").textContent =
+    `SOAL ${String(current+1).padStart(2,"0")} / ${questions.length}`;
+
+  document.getElementById("progressBar").style.width =
+    `${((current+1)/questions.length)*100}%`;
+
+  document.getElementById("questionText").textContent = q.question;
+  document.getElementById("score").textContent = score;
+  document.getElementById("streak").textContent = streak;
+
+  feedbackEl.classList.remove("show");
+  nextBtn.style.display = "none";
+
+  optionsEl.innerHTML = "";
+
+  q.options.forEach((option,index)=>{
+    const button = document.createElement("button");
+    button.className = "option";
+    button.textContent = `${String.fromCharCode(65+index)}. ${option}`;
+    button.addEventListener("click",()=>selectAnswer(index,button));
+    optionsEl.appendChild(button);
+  });
+
+  updateTimer();
+  timerInterval = setInterval(()=>{
+    timerValue -= .1;
+    if(timerValue <= 0){
+      timerValue = 0;
+      updateTimer();
+      clearInterval(timerInterval);
+      selectAnswer(null,null,true);
+      return;
+    }
+    updateTimer();
+  },100);
+}
+
+function updateTimer(){
+  timerEl.textContent = timerValue.toFixed(1);
+  timerEl.classList.toggle("warning",timerValue <= 3);
+}
+
+function selectAnswer(selected,clickedButton,timeout=false){
+  if(answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const q = questions[current];
+  const buttons = [...document.querySelectorAll(".option")];
+
+  buttons.forEach(b=>b.classList.add("disabled"));
+
+  const isCorrect = selected === q.answer;
+
+  if(isCorrect){
+    clickedButton.classList.add("correct");
+    correct++;
+    streak++;
+    bestStreak = Math.max(bestStreak,streak);
+
+    const speedBonus = Math.ceil(timerValue);
+    const streakBonus = Math.max(0,(streak-1)*2);
+    const points = 10 + speedBonus + streakBonus;
+
+    score += points;
+
+    feedbackTitle.textContent = "BENAR";
+    feedbackText.textContent =
+      praises[Math.floor(Math.random()*praises.length)] +
+      ` +${points} poin.`;
+  }else{
+    if(clickedButton) clickedButton.classList.add("wrong");
+    buttons[q.answer].classList.add("correct");
+
+    streak = 0;
+
+    feedbackTitle.textContent = timeout ? "WAKTU HABIS" : "SALAH";
+    feedbackText.textContent =
+      sarcastic[Math.floor(Math.random()*sarcastic.length)] +
+      ` Jawaban yang benar: ${q.options[q.answer]}.`;
+  }
+
+  document.getElementById("score").textContent = score;
+  document.getElementById("streak").textContent = streak;
+
+  feedbackEl.classList.add("show");
+  nextBtn.style.display = "inline-block";
+  nextBtn.textContent =
+    current === questions.length-1 ? "Lihat Hasil" : "Soal Berikutnya";
+}
+
+function finishGame(){
+  clearInterval(timerInterval);
+
+  const maxPossible = questions.length * 20 + (questions.length-1)*2;
+  const finalScore = Math.round((score/maxPossible)*100);
+
+  let title = "";
+  let description = "";
+
+  if(finalScore >= 90){
+    title = "OTAK SERVER";
+    description = "Gila. Hampir semua soal lo libas. Kayaknya Google yang harus mulai belajar dari lo.";
+  }else if(finalScore >= 80){
+    title = "CALON JUARA";
+    description = "Pintar juga. Tinggal sedikit lagi menuju mode manusia Wikipedia.";
+  }else if(finalScore >= 70){
+    title = "PINTAR JUGA LO";
+    description = "Pengetahuan lo cukup buat bikin orang mikir dua kali sebelum debat sama lo.";
+  }else if(finalScore >= 60){
+    title = "MASIH AMAN";
+    description = "Lumayan. Belum bisa jadi juri, tapi setidaknya nggak bikin malu satu tim.";
+  }else if(finalScore >= 50){
+    title = "SETENGAH OTAK";
+    description = "Secara statistik, setengah perjalanan berhasil. Sisanya mungkin lagi cuti.";
+  }else if(finalScore >= 30){
+    title = "CONFIDENT GUESSER";
+    description = "Jawaban lo punya keyakinan. Sayangnya, kebenaran punya pendapat berbeda.";
+  }else if(finalScore >= 10){
+    title = "GOOGLE MENANGIS";
+    description = "Informasi sebanyak itu di internet, tapi entah kenapa lo memilih jalur yang sulit.";
+  }else{
+    title = "LU DATANG KE SINI BUAT APA?";
+    description = "Semua salah. Tapi setidaknya lo konsisten. Itu juga sebuah pencapaian.";
+  }
+
+  document.getElementById("finalScore").textContent = `${finalScore}/100`;
+  document.getElementById("resultTitle").textContent = title;
+  document.getElementById("resultDescription").textContent = description;
+  document.getElementById("correctStat").textContent = `${correct}/${questions.length}`;
+  document.getElementById("accuracyStat").textContent =
+    `${Math.round((correct/questions.length)*100)}%`;
+  document.getElementById("bestStreakStat").textContent = bestStreak;
+
+  showScreen(resultScreen);
+}
+
+document.getElementById("startBtn").addEventListener("click",startGame);
+
+nextBtn.addEventListener("click",()=>{
+  if(current === questions.length-1){
+    finishGame();
+  }else{
+    current++;
+    renderQuestion();
+  }
+});
+
+document.getElementById("retryBtn").addEventListener("click",startGame);
+
+document.getElementById("shareBtn").addEventListener("click",async()=>{
+  const scoreText = document.getElementById("finalScore").textContent;
+  const title = document.getElementById("resultTitle").textContent;
+
+  const shareData = {
+    title:"Lomba Pengetahuan Umum",
+    text:`Skor gue ${scoreText} di Lomba Pengetahuan Umum. ${title}. Coba kalahin gue!`,
+    url:window.location.href
+  };
+
+  if(navigator.share){
+    try{
+      await navigator.share(shareData);
+    }catch(e){}
+  }else{
+    try{
+      await navigator.clipboard.writeText(
+        `${shareData.text} ${window.location.href}`
+      );
+      alert("Hasil berhasil disalin. Tinggal kirim ke teman.");
+    }catch(e){
+      alert("Salin link ini dan bagikan ke teman: " + window.location.href);
+    }
+  }
+});
+</script>
+</body>
+</html>
